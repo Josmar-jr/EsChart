@@ -1,0 +1,5 @@
+data/
+db.sqlite3
+.docker-env
+.env.dev
+.env.prod
