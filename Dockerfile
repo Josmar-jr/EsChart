@@ -6,4 +6,5 @@ WORKDIR /code
 COPY requirements.txt /code/
 RUN pip install -r requirements.txt
 RUN pip freeze > requirements.txt
+RUN manage.py migrate
 COPY . /code/
