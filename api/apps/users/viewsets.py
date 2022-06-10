@@ -43,3 +43,20 @@ def create_user(request):
         return Response(context_response, status=status.HTTP_201_CREATED)
     else:
         return Response(status=status.HTTP_404_NOT_FOUND)
+
+@api_view(['GET'])
+def read_user(request, pk=None):
+    pass
+
+@api_view(['PUT', 'PATCH'])
+def update_user(request):
+    pass
+
+@api_view(['DELETE'])
+def delete_user(request, pk):
+    try:
+        user = CustomUser.objects.get(id=pk)
+        user.delete()
+        return Response("Usuário excluído com sucesso.", status=status.HTTP_204_NO_CONTENT)
+    except Exception:
+        return Response("Usuário não encontrado.", status=status.HTTP_404_NOT_FOUND)
