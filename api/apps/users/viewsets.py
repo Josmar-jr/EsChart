@@ -10,9 +10,6 @@ from .models import CustomUser
 # Create your views here.
 @api_view(['POST'])
 def create_user(request):
-    user = UserSerializer(data=data)
-    user_instance = CustomUser.objects.all()
-    
     username= request.data['username']
     email = request.data['email']
     name = request.data['name']
@@ -27,6 +24,8 @@ def create_user(request):
         'password': password_valid
     }
 
+    user = UserSerializer(data=data)
+    user_instance = CustomUser.objects.all()
 
     if user_instance.filter(username=request.data['username']).exists():
         raise serializers.ValidationError("Usuário com esse login já existe, tente outro!")
