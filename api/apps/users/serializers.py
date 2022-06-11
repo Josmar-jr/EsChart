@@ -4,4 +4,9 @@ from .models import CustomUser
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
-        fields = ('username', 'email', 'name', 'password')
+        fields = '__all__'
+        
+class ReadUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomUser
+        exclude = ('password', )
