@@ -1,34 +1,52 @@
+from cgitb import text
+from django.contrib.auth.hashers import make_password
+
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import serializers
 from rest_framework import status
-
-from django.contrib.auth.hashers import make_password
 
 from .serializers import UserSerializer, ReadUserSerializer
 from .models import CustomUser
 
 @api_view(['POST', 'GET', 'PATCH', 'PUT', 'DELETE'])
 def user_manager_action(request, pk=None):
+    """
+    FUNÇÃO RESPONSÁVEL POR REDIRECIONAR FUNCIONALIDADES PARA SEUS RESPECTIVOS MÉTODOS...
+    @Author: Gilson Kedson
+    @Params: request, pk
+    @Date: 2022
+    """
+    
     if request.method == 'POST':
         return create_user(request)
     
     if request.method == 'GET':
-        return read_user(request, pk)
+        return read_user(pk)
+    
+    if request.method == 'DELETE':
+        return delete_user(pk)
     
     if request.method == 'PATCH' or request.method == 'PUT':
         return update_user(request, pk)
         
-    if request.method == 'DELETE':
-        return delete_user(request, pk)
 
 def create_user(request):
-    username= request.data['username']
-    email = request.data['email']
-    name = request.data['name']
-    password = request.data['password']
+    """
+    FUNÇÃO RESPONSÁVEL PELA CRIAÇÃO DE USUÁRIO...
+    @Author: Gilson Kedson
+    @Params: request
+    @Method: POST
+    @Date: 2022
+    """
+    
+    get_data = request.data
+    username= get_data['username']
+    email = get_data['email']
+    name = get_data['name']
+    password = get_data['password']
+    
     password_valid = make_password(password)
-    context_response = {}
 
     data = {
         'username': username,
@@ -47,17 +65,23 @@ def create_user(request):
         raise serializers.ValidationError("Usuário com esse email já existe, tente outro!")
 
     if user.is_valid():
-        context_response['name'] = request.data['name']
-        context_response['username'] = request.data['username']
-        context_response['email'] = request.data['email']
+        data.pop('password')
         user.save()
-
-        return Response(context_response, status=status.HTTP_201_CREATED)
+        return Response(data, status=status.HTTP_201_CREATED)
     
     return Response(status=status.HTTP_404_NOT_FOUND)
 
-def read_user(request, pk=None):    
-    user_instance = CustomUser.objects.all()
+
+def read_user(pk=None):
+    """
+    FUNÇÃO RESPONSÁVEL POR PEGAR UM USUÁRIO NO BANCO DE DADOS...
+    @Author: Gilson Kedson
+    @Params: pk
+    @Method: GET
+    @Date: 2022
+    """
+    
+    user_instance = CustomUser.objects.all().order_by('id')
     
     if pk != None:
         try:
@@ -70,7 +94,16 @@ def read_user(request, pk=None):
     users_serializer = ReadUserSerializer(user_instance, many=True)
     return Response(users_serializer.data, status=status.HTTP_200_OK)        
 
-def delete_user(request, pk):
+
+def delete_user(pk):
+    """
+    FUNÇÃO RESPONSÁVEL POR DELETAR UM USUÁRIO...
+    @Author: Gilson Kedson
+    @Params: pk
+    @Method: DELETE
+    @Date: 2022
+    """
+    
     try:
         user = CustomUser.objects.get(id=pk)
         user.delete()
@@ -78,5 +111,27 @@ def delete_user(request, pk):
     except Exception:
         return Response("Usuário não encontrado.", status=status.HTTP_404_NOT_FOUND)
 
-def update_user(request):
-    pass
+
+def update_user(request, pk):
+    """
+    FUNÇÃO RESPONSÁVEL POR ATUALIZAR DADOS DE UM USUÁRIO...
+    @Author: Gilson Kedson
+    @Params: request, pk
+    @Method: PUT, PATCH
+    @Date: 2022
+    """
+    
+    user = CustomUser.objects.get(id=pk)
+    data = request.data
+    user_update = data.copy()
+    
+    try:    
+        user_update['password'] = make_password(data['password'])
+        user_serializer = UserSerializer(instance=user, data=user_update)
+        if user_serializer.is_valid():
+            user_serializer.save()
+            return Response(user_serializer.data, status=status.HTTP_200_OK)
+        else:
+            return Response(user_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    except Exception:
+        return Response("Usuário não encontrado.", status=status.HTTP_404_NOT_FOUND)
