@@ -3,6 +3,9 @@ from pathlib import Path
 import sys
 import os
 
+import dj_database_url
+import django_heroku
+
 from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -82,13 +85,33 @@ TEMPLATES = [
     },
 ]
 
+# Cors configuration dev
+CORS_ORIGIN_ALLOW_ALL = True
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'PATCH',
+    'POST',
+    'PUT',
+]
+
 WSGI_APPLICATION = 'extensao_ufrn_api.wsgi.application'
 
 
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
-
 DATABASES = {
+   'default': {
+       'ENGINE': 'django.db.backends.sqlite3',
+       'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+   }
+}
+
+db_from_env = dj_database_url.config()
+DATABASES['default'].update(db_from_env)
+
+"""DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': os.environ.get('POSTGRES_NAME'),
@@ -97,7 +120,7 @@ DATABASES = {
         'HOST': 'db',
         'PORT': 5432,
     }
-}
+}"""
 
 
 # Password validation
@@ -145,3 +168,4 @@ sys.path.insert(0, os.path.join(PROJECT_ROOT, '../api/apps'))
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+django_heroku.settings(locals())
